@@ -109,7 +109,8 @@ const displayEmployeesByDepartment = () => {
             queryEmployeesByDepartment(department)
 
         });
-
+        
+        connection.end();
         
         });
     
