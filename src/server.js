@@ -2,6 +2,8 @@ const inquirer = require('inquirer');
 const mysql = require('mysql');
 const cTable = require('console.table')
 
+let departmentNames;
+
 const connection = mysql.createConnection({
     host: 'localhost',
   
@@ -37,38 +39,124 @@ const OPTIONS = [
 const starterQuestion =  {
     type: 'list',
     message: 'What would you like to do?',
-    name: 'options',
+    name: 'option',
     choices: OPTIONS,
     }
 
-    connection.connect();
+connection.connect();
+inquirer
+    .prompt([starterQuestion])
+    .then(({ option }) => {
+        console.log(option)
+    switch (option) {
+        case 1:
+        queryEmployeesByAll();
+        break;
+    case 2:
+        displayEmployeesByDepartment();
+        
+        break;
+    //   case 3:
+    //     askFromToYear().then(queryBetweenYears);
+    //     break;
+    //   case 4:
+    //     askSongTitle().then(queryByTitle);
+    //     break;
+        default:
+        throw 'Something went wrong.';
+    };
+    
+    });
+
+const queryEmployeesByAll = () => {
+    connection.query(
+        `
+        SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
+        CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
+        FROM role, department, employees e
+        LEFT JOIN employees m 
+        ON (e.manager_id = m.id) 
+        WHERE e.role_id = role.id AND role.department_id = department.id;
+        `,
+        (err, res) => {
+          if (err) {
+            throw err;
+          }
+          const result = res;
+        //   const table = cTable.getTable(res)
+          console.log(res)
+                         
+          const table = cTable.getTable(result)
+          console.log(table)
+          
+          connection.end();
+        });
+
+}
+
+const displayEmployeesByDepartment = () => {
+    
+    connection.query(
+        `SELECT name FROM department`,
+        (err, res) => {
+          if (err) {
+            throw err;
+          }
+          
+        departmentNames = res.map(department => department.name);
+
+        askDepartmentName(departmentNames).then((department) => {
+            queryEmployeesByDepartment(department)
+
+        });
+
+        
+        });
+    
+
+}
+
+
+
+const askDepartmentName = (options) => {
     inquirer
-      .prompt([starterQuestion])
-      .then(({ option }) => {
-        switch (option) {
-          case 1:
+        .prompt([{
+            type: 'list',
+            message: 'Which department would you like?',
+            name: 'departments',
+            choices: options,
+            }])
+        
+}
+
+
+
+const queryEmployeesByDepartment = (department) => {
+
             connection.query(
-                `SELECT * FROM employees`,
+                `
+                SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
+                CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
+                FROM role, department, employees e
+                LEFT JOIN employees m 
+                ON (e.manager_id = m.id) 
+                WHERE e.role_id = role.id AND role.department_id = department.id AND department.name = '${department}';
+                `,
                 (err, res) => {
                   if (err) {
                     throw err;
                   }
-                  cTable(res)
+                  const result = res;
+                //   const table = cTable.getTable(res)
+                  console.log(res)
+                                 
+                  const table = cTable.getTable(result)
+                  console.log(table)
                   
                   connection.end();
                 });
-            break;
-        //   case 2:
-        //     showPopularArtists();
-        //     break;
-        //   case 3:
-        //     askFromToYear().then(queryBetweenYears);
-        //     break;
-        //   case 4:
-        //     askSongTitle().then(queryByTitle);
-        //     break;
-          default:
-            throw 'Something went wrong.';
-        };
         
-      });
+       
+}
+
+    
