@@ -95,32 +95,45 @@ const queryEmployeesByAll = () => {
 }
 
 const displayEmployeesByDepartment = () => {
+  getDepartments()
+  .then(departments => {
+    console.log(departments)
+    askDepartmentName(departments)
+    .then(( response ) => {
+    queryEmployeesByDepartment(response.departments)
     
-    connection.query(
-        `SELECT name FROM department`,
-        (err, res) => {
-          if (err) {
-            throw err;
-          }
+  });
+  });
+   
+}
+
+const getDepartments  = () => {
+  return new Promise((resolve, reject) => {
+              
+
+          connection.query(
+            `SELECT name FROM department`,
+            (err, res) => {
+              if (err) {
+                
+                reject(err);
+              
+              }
+              
+            departmentNames = res.map(department => department.name);
+            console.log(departmentNames)
+            resolve(departmentNames)
+            });
+            
+            
           
-        departmentNames = res.map(department => department.name);
-
-        askDepartmentName(departmentNames).then((department) => {
-            queryEmployeesByDepartment(department)
-
-        });
-        
-        connection.end();
-        
-        });
-    
-
+  });
 }
 
 
 
 const askDepartmentName = (options) => {
-    inquirer
+   return inquirer
         .prompt([{
             type: 'list',
             message: 'Which department would you like?',
@@ -132,7 +145,7 @@ const askDepartmentName = (options) => {
 
 
 
-const queryEmployeesByDepartment = (department) => {
+const queryEmployeesByDepartment = (departments) => {
 
             connection.query(
                 `
@@ -141,13 +154,14 @@ const queryEmployeesByDepartment = (department) => {
                 FROM role, department, employees e
                 LEFT JOIN employees m 
                 ON (e.manager_id = m.id) 
-                WHERE e.role_id = role.id AND role.department_id = department.id AND department.name = '${department}';
+                WHERE e.role_id = role.id AND role.department_id = department.id AND department.name = '${departments}';
                 `,
                 (err, res) => {
                   if (err) {
                     throw err;
                   }
                   const result = res;
+                  console.log(departments)
                 //   const table = cTable.getTable(res)
                   console.log(res)
                                  
