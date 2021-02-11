@@ -53,7 +53,7 @@ inquirer
         console.log(option)
     switch (option) {
       case 1:
-        queryEmployeesByAll();
+        displayEmployeesByAll();
         break;
       case 2:
         displayEmployeesByDepartment();
@@ -91,100 +91,7 @@ inquirer
     
     });
 
-   
-//Code to fetch employees by All
-const queryEmployeesByAll = () => {
-
-  queryEmployees()
-  .then((results) =>{ 
-    const result = results;
-    // console.log(departments)
-  //   const table = cTable.getTable(res)
-    console.log(result)
-                   
-    const table = cTable.getTable(result)
-    console.log(table)
-
-  })
-    // connection.query(
-    //     `
-    //     SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
-    //     CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
-    //     FROM role, department, employees e
-    //     LEFT JOIN employees m 
-    //     ON (e.manager_id = m.id) 
-    //     WHERE e.role_id = role.id AND role.department_id = department.id;
-    //     `,
-    //     (err, res) => {
-    //       if (err) {
-    //         throw err;
-    //       }
-    //       const result = res;
-    //     //   const table = cTable.getTable(res)
-    //       console.log(res)
-                         
-    //       const table = cTable.getTable(result)
-    //       console.log(table)
-          
-    //       connection.end();
-    //     });
-
-}
-
-//Helper code to get Employees by department
-
-const displayEmployeesByDepartment = () => {
-  getDepartments()
-  .then(departments => {
-    console.log(departments)
-    askDepartmentName(departments)
-    .then(( { departmentID } ) => {
-    queryEmployeesByDepartment(departmentID)
-    
-  });
-  });
-   
-}
-
-const getDepartments  = () => {
-  return new Promise((resolve, reject) => {
-              
-
-          connection.query(
-            `SELECT name, id FROM department`,
-            (err, res) => {
-              if (err) {
-                
-                reject(err);
-              
-              }
-              
-            // departmentNames = res.map(department => department.name);
-
-            departmentNames = res.map(department => {
-              return {name: department.name, value: department.id }});
-            console.log(departmentNames)
-            resolve(departmentNames)
-            });
-      
-  });
-}
-
-
-
-const askDepartmentName = (options) => {
-   return inquirer
-        .prompt([{
-            type: 'list',
-            message: 'Which department would you like?',
-            name: 'departmentID',
-            choices: options,
-            }])
-        
-}
-// queryDepartments({
-//   "department.id": 1,
-// })
+//Query to fetch the employee data to display by department, manager and all
 function queryEmployees(filter = {}) {
   return new Promise((resolve, reject) => {
 
@@ -212,6 +119,65 @@ function queryEmployees(filter = {}) {
         connection.end();
       }); 
   })
+}    
+   
+//Code to display employees by All
+const displayEmployeesByAll = () => {
+  queryEmployees()
+  .then((results) =>{ 
+    const result = results;
+
+    console.log(result)
+                   
+    const table = cTable.getTable(result)
+    console.log(table)
+
+  })
+
+}
+
+//Helper code to get Employees by department
+
+const displayEmployeesByDepartment = () => {
+  getDepartments()
+  .then(departments => {
+    console.log(departments)
+    askDepartmentName(departments)
+    .then(( { departmentID } ) => {
+    queryEmployeesByDepartment(departmentID)
+    
+  });
+  });
+   
+}
+
+const getDepartments  = () => {
+  return new Promise((resolve, reject) => {
+          connection.query(
+            `SELECT name, id FROM department`,
+            (err, res) => {
+              if (err) {
+                reject(err);
+              }
+              
+            departmentNames = res.map(department => {
+              return {name: department.name, value: department.id }});
+            console.log(departmentNames)
+            resolve(departmentNames)
+            });
+      
+  });
+}
+
+const askDepartmentName = (options) => {
+   return inquirer
+        .prompt([{
+            type: 'list',
+            message: 'Which department would you like?',
+            name: 'departmentID',
+            choices: options,
+            }])
+        
 }
 
 const queryEmployeesByDepartment = (departments) => {
@@ -228,34 +194,9 @@ const queryEmployeesByDepartment = (departments) => {
       console.log(table)
 
     })
-            // connection.query(
-            //     `
-                // SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
-                // CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
-                // FROM role, department, employees e
-                // LEFT JOIN employees m 
-                // ON (e.manager_id = m.id) 
-                // WHERE e.role_id = role.id AND role.department_id = department.id AND department.id = ?;
-            //     `,
-            //     [departments]
-            //     ,
-            //     (err, res) => {
-            //       if (err) {
-            //         throw err;
-            //       }
-            //       const result = res;
-            //       console.log(departments)
-            //     //   const table = cTable.getTable(res)
-            //       console.log(res)
-                                 
-            //       const table = cTable.getTable(result)
-            //       console.log(table)
-                  
-            //       connection.end();
-            //     }); 
 }
 
-//Helper code to fetch Employees by manager 
+//Helper code to display Employees by manager 
 const displayEmployeesByManager = () => {
   getManagers()
   .then(managers => {
@@ -272,8 +213,6 @@ const displayEmployeesByManager = () => {
 
 const getManagers  = () => {
   return new Promise((resolve, reject) => {
-              
-
           connection.query(
             `SELECT distinct m.id, CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
             from employees e
@@ -295,8 +234,6 @@ const getManagers  = () => {
   });
 }
 
-
-
 const askManagerName = (options) => {
   return inquirer
        .prompt([{
@@ -308,8 +245,6 @@ const askManagerName = (options) => {
        
 }
 
-
-//Have to fetch employee list by manager ID's
 const queryEmployeesByManager = (id) => {
   queryEmployees({
     'e.manager_id': id
@@ -317,38 +252,13 @@ const queryEmployeesByManager = (id) => {
     .then((results) =>{ 
       const result = results;
       console.log(id)
-    //   const table = cTable.getTable(res)
+   
       console.log(result)
                      
       const table = cTable.getTable(result)
       console.log(table)
 
     })
-
-  // connection.query(
-  //     `
-  //     SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
-  //     CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
-  //     FROM role, department, employees e
-  //     LEFT JOIN employees m 
-  //     ON (e.manager_id = m.id) 
-  //     WHERE e.role_id = role.id AND role.department_id = department.id AND e.manager_id = ?;
-  //     `,
-  //     [id],
-  //     (err, res) => {
-  //       if (err) {
-  //         throw err;
-  //       }
-  //       const result = res;
-  //       console.log(id)
-  //     //   const table = cTable.getTable(res)
-  //       console.log(res)
-                       
-  //       const table = cTable.getTable(result)
-  //       console.log(table)
-        
-  //       connection.end();
-  //     }); 
 }
 
 //Adding and removing and employee
