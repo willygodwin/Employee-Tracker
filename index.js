@@ -76,6 +76,10 @@ inquirer
       case 8:
         displayAllRoles();
         break
+      case 9:
+        displayAddedRole();
+        break
+        
         
         
         default:
@@ -119,8 +123,8 @@ const displayEmployeesByDepartment = () => {
   .then(departments => {
     console.log(departments)
     askDepartmentName(departments)
-    .then(( response ) => {
-    queryEmployeesByDepartment(response.departments)
+    .then(( { departmentID } ) => {
+    queryEmployeesByDepartment(departmentID)
     
   });
   });
@@ -132,7 +136,7 @@ const getDepartments  = () => {
               
 
           connection.query(
-            `SELECT name FROM department`,
+            `SELECT name, id FROM department`,
             (err, res) => {
               if (err) {
                 
@@ -140,7 +144,10 @@ const getDepartments  = () => {
               
               }
               
-            departmentNames = res.map(department => department.name);
+            // departmentNames = res.map(department => department.name);
+
+            departmentNames = res.map(department => {
+              return {name: department.name, value: department.id }});
             console.log(departmentNames)
             resolve(departmentNames)
             });
@@ -155,7 +162,7 @@ const askDepartmentName = (options) => {
         .prompt([{
             type: 'list',
             message: 'Which department would you like?',
-            name: 'departments',
+            name: 'departmentID',
             choices: options,
             }])
         
@@ -172,8 +179,10 @@ const queryEmployeesByDepartment = (departments) => {
                 FROM role, department, employees e
                 LEFT JOIN employees m 
                 ON (e.manager_id = m.id) 
-                WHERE e.role_id = role.id AND role.department_id = department.id AND department.name = '${departments}';
+                WHERE e.role_id = role.id AND role.department_id = department.id AND department.id = ?;
                 `,
+                [departments]
+                ,
                 (err, res) => {
                   if (err) {
                     throw err;
@@ -555,6 +564,65 @@ const displayAllRoles = () => {
 
 }
 
+
+const addRole = (title, salary, department) => {
+
+  connection.query(
+    'INSERT INTO role SET ?',
+    [
+      {
+        title: title,
+        salary: salary,
+        department_id: department,
+      },
+    ],
+      (err, res) => {
+        if (err) {
+          throw err;
+        }
+
+        console.log(`Succesfully added new role - Title: ${title} , Salary: ${salary}, Department ID: ${department}`)
+                       
+        connection.end();
+      }); 
+}
+
+const askRoleInfo = (department) => {
+  return inquirer
+       .prompt([{
+           type: 'input',
+           message: 'What is the title of the role?',
+           name: 'title',
+           }, 
+          {
+            type: 'input',
+            message: 'What is the salary of the role?',
+            name: 'salary',
+          }, 
+          {
+            type: 'list',
+            message: 'What department does the role belong?',
+            name: 'department',
+            choices: department,
+          },
+
+          ])
+}
+
+
+const displayAddedRole = () => {
+  getDepartments()
+  .then(departments => {
+    console.log(departments)
+      askRoleInfo(departments)
+      .then(({title, salary, department} ) => {
+        addRole(title, salary, department)
+
+    
+      });
+
+  });
+}
 // module.exports ={
 //   displayAllRoles: displayAllRoles
 // }
