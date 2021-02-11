@@ -62,20 +62,12 @@ inquirer
         displayEmployeesByManager();
         break;
       case 4:
-        getManagers()
-        .then(managers => {
-          console.log(managers)
-          getRoles()
-          .then(roles => {
-            console.log(roles)
-          askEmployeeInfo(roles, managers)
-          .then(({firstName, lastName, role, manager} ) => {
-      
-            addEmployee(firstName, lastName, role, manager)
-          
-        });
-        });
-        });
+        displayAddedEmployee();
+        break;
+      case 5:
+        displayDeletedEmployee();
+        break;
+
         break;
         default:
         throw 'Something went wrong.';
@@ -222,7 +214,7 @@ const getManagers  = () => {
               
             managerNames = res.map(employee => {
               return {name: employee.Manager, value: employee.id }});
-            managerNames.unshift({name: "None", value: null})
+            
             console.log(managerNames)
             resolve(managerNames)
             });      
@@ -288,6 +280,7 @@ const getEmployees  = () => {
               
             employeeNames = res.map(employee => {
               return {name: employee.Name, value: employee.id }});
+            employeeNames.unshift({name: "None", value: null});
             console.log(employeeNames)
             resolve(employeeNames)
             });      
@@ -367,12 +360,74 @@ const addEmployee = (firstName, lastName, role, manager) => {
         console.log(role)
         console.log(manager)
 
-        console.log(`Succesfully added new employee`)
+        console.log(`Succesfully added new employee Name: ${firstName} ${lastName}, Role: ${role}, Manager: ${manager}`)
                        
         const table = cTable.getTable(result)
         console.log(table)
         
         connection.end();
       }); 
+}
+ 
+const displayAddedEmployee = () => {
+  getEmployees()
+  .then(employees => {
+    console.log(employees)
+    getRoles()
+    .then(roles => {
+      console.log(roles)
+      askEmployeeInfo(roles, employees)
+      .then(({firstName, lastName, role, manager} ) => {
+
+        addEmployee(firstName, lastName, role, manager)
+    
+      });
+    });
+  });
+}
+
+const askEmployeeName = (options) => {
+  return inquirer
+  .prompt([{
+      type: 'list',
+      message: 'Which employee would you like to delete?',
+      name: 'employeeID',
+      choices: options,
+      }])
+
+}
+
+const deleteEmployee = (id) => {
+
+  connection.query(
+    `DELETE FROM employees WHERE employees.id = ${id};`,
+    (err, res) => {
+      if (err) {
+        throw err;
+      }
+      const result = res;
+
+
+      console.log(`Succesfully deleted employee id: ${id}`)
+                      
+      const table = cTable.getTable(result)
+      console.log(table)
+      
+      connection.end();
+    }); 
+}
+
+const displayDeletedEmployee = () => {
+  getEmployees()
+  .then(employees => {
+    console.log(employees)
+    askEmployeeName(employees)
+      .then(({employeeID} ) => {
+
+        deleteEmployee(employeeID)
+    
+      });
+    
+  });
 }
 
