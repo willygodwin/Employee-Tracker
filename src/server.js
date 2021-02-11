@@ -254,8 +254,9 @@ const queryEmployeesByManager = (id) => {
       FROM role, department, employees e
       LEFT JOIN employees m 
       ON (e.manager_id = m.id) 
-      WHERE e.role_id = role.id AND role.department_id = department.id AND e.manager_id = ${id};
+      WHERE e.role_id = role.id AND role.department_id = department.id AND e.manager_id = ?;
       `,
+      [id],
       (err, res) => {
         if (err) {
           throw err;
@@ -485,9 +486,10 @@ const updateManagerID = (id, managerID) => {
   connection.query(
     `UPDATE employees 
       SET 
-        manager_id = ${managerID}
+        manager_id = ?
       WHERE
-        id = ${id};`,
+        id = ?;`,
+        [managerID, id],
     (err, res) => {
       if (err) {
         throw err;
@@ -552,3 +554,9 @@ const displayAllRoles = () => {
     });  
 
 }
+
+// module.exports ={
+//   displayAllRoles: displayAllRoles
+// }
+//require('queries.js')
+//require('questions.js')
