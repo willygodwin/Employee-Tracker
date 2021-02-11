@@ -67,8 +67,11 @@ inquirer
       case 5:
         displayDeletedEmployee();
         break;
-
+      case 6:
+        displayUpdatedRole();
         break;
+
+        
         default:
         throw 'Something went wrong.';
     };
@@ -390,7 +393,7 @@ const askEmployeeName = (options) => {
   return inquirer
   .prompt([{
       type: 'list',
-      message: 'Which employee would you like to delete?',
+      message: 'Which employee would you like to select?',
       name: 'employeeID',
       choices: options,
       }])
@@ -428,6 +431,58 @@ const displayDeletedEmployee = () => {
     
       });
     
+  });
+}
+
+const askNewRole = (options) => {
+  return inquirer
+  .prompt([{
+      type: 'list',
+      message: 'Which role would you like to assign to the employee?',
+      name: 'roleID',
+      choices: options,
+      }])
+
+}
+
+const updateRoleID = (id, roleID) => {
+
+  connection.query(
+    `UPDATE employees 
+      SET 
+        role_id = ${roleID}
+      WHERE
+        id = ${id};`,
+    (err, res) => {
+      if (err) {
+        throw err;
+      }
+      
+
+
+      console.log(`Succesfully updated employee ${id} role to ${roleID}`)
+                      
+
+      
+      connection.end();
+    }); 
+}
+
+const displayUpdatedRole = () => {
+  getEmployees()
+  .then(employees => {
+    console.log(employees)
+    getRoles()
+    .then(roles => {
+      console.log(roles)
+    askEmployeeName(employees)
+      .then(({employeeID} ) => {
+        askNewRole(roles)
+        .then( ({roleID}) => {
+          updateRoleID(employeeID, roleID )
+        });
+      });
+    }); 
   });
 }
 
