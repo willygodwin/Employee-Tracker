@@ -79,6 +79,9 @@ inquirer
       case 9:
         displayAddedRole();
         break
+      case 10:
+        displayDeletedRole();
+        break
         
         
         
@@ -91,28 +94,40 @@ inquirer
    
 //Code to fetch employees by All
 const queryEmployeesByAll = () => {
-    connection.query(
-        `
-        SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
-        CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
-        FROM role, department, employees e
-        LEFT JOIN employees m 
-        ON (e.manager_id = m.id) 
-        WHERE e.role_id = role.id AND role.department_id = department.id;
-        `,
-        (err, res) => {
-          if (err) {
-            throw err;
-          }
-          const result = res;
-        //   const table = cTable.getTable(res)
-          console.log(res)
+
+  queryEmployees()
+  .then((results) =>{ 
+    const result = results;
+    // console.log(departments)
+  //   const table = cTable.getTable(res)
+    console.log(result)
+                   
+    const table = cTable.getTable(result)
+    console.log(table)
+
+  })
+    // connection.query(
+    //     `
+    //     SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
+    //     CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
+    //     FROM role, department, employees e
+    //     LEFT JOIN employees m 
+    //     ON (e.manager_id = m.id) 
+    //     WHERE e.role_id = role.id AND role.department_id = department.id;
+    //     `,
+    //     (err, res) => {
+    //       if (err) {
+    //         throw err;
+    //       }
+    //       const result = res;
+    //     //   const table = cTable.getTable(res)
+    //       console.log(res)
                          
-          const table = cTable.getTable(result)
-          console.log(table)
+    //       const table = cTable.getTable(result)
+    //       console.log(table)
           
-          connection.end();
-        });
+    //       connection.end();
+    //     });
 
 }
 
@@ -167,36 +182,77 @@ const askDepartmentName = (options) => {
             }])
         
 }
+// queryDepartments({
+//   "department.id": 1,
+// })
+function queryEmployees(filter = {}) {
+  return new Promise((resolve, reject) => {
 
+    const filterQuery = Object.keys(filter)
+                              .map(field => `AND ${field} = ? `)
+                              .join('');
 
+    connection.query(
+      `
+      SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
+      CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
+      FROM role, department, employees e
+      LEFT JOIN employees m 
+      ON (e.manager_id = m.id) 
+      WHERE e.role_id = role.id AND role.department_id = department.id ${filterQuery};
+      `,
+      Object.values(filter)
+      ,
+      (err, res) => {
+        if (err) {
+          reject(err);
+        }
+        resolve(res)
+        
+        connection.end();
+      }); 
+  })
+}
 
 const queryEmployeesByDepartment = (departments) => {
+  queryEmployees({
+    'department.id': departments
+  })
+    .then((results) =>{ 
+      const result = results;
+      console.log(departments)
+    //   const table = cTable.getTable(res)
+      console.log(result)
+                     
+      const table = cTable.getTable(result)
+      console.log(table)
 
-            connection.query(
-                `
-                SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
-                CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
-                FROM role, department, employees e
-                LEFT JOIN employees m 
-                ON (e.manager_id = m.id) 
-                WHERE e.role_id = role.id AND role.department_id = department.id AND department.id = ?;
-                `,
-                [departments]
-                ,
-                (err, res) => {
-                  if (err) {
-                    throw err;
-                  }
-                  const result = res;
-                  console.log(departments)
-                //   const table = cTable.getTable(res)
-                  console.log(res)
+    })
+            // connection.query(
+            //     `
+                // SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
+                // CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
+                // FROM role, department, employees e
+                // LEFT JOIN employees m 
+                // ON (e.manager_id = m.id) 
+                // WHERE e.role_id = role.id AND role.department_id = department.id AND department.id = ?;
+            //     `,
+            //     [departments]
+            //     ,
+            //     (err, res) => {
+            //       if (err) {
+            //         throw err;
+            //       }
+            //       const result = res;
+            //       console.log(departments)
+            //     //   const table = cTable.getTable(res)
+            //       console.log(res)
                                  
-                  const table = cTable.getTable(result)
-                  console.log(table)
+            //       const table = cTable.getTable(result)
+            //       console.log(table)
                   
-                  connection.end();
-                }); 
+            //       connection.end();
+            //     }); 
 }
 
 //Helper code to fetch Employees by manager 
@@ -255,31 +311,44 @@ const askManagerName = (options) => {
 
 //Have to fetch employee list by manager ID's
 const queryEmployeesByManager = (id) => {
+  queryEmployees({
+    'e.manager_id': id
+  })
+    .then((results) =>{ 
+      const result = results;
+      console.log(id)
+    //   const table = cTable.getTable(res)
+      console.log(result)
+                     
+      const table = cTable.getTable(result)
+      console.log(table)
 
-  connection.query(
-      `
-      SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
-      CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
-      FROM role, department, employees e
-      LEFT JOIN employees m 
-      ON (e.manager_id = m.id) 
-      WHERE e.role_id = role.id AND role.department_id = department.id AND e.manager_id = ?;
-      `,
-      [id],
-      (err, res) => {
-        if (err) {
-          throw err;
-        }
-        const result = res;
-        console.log(id)
-      //   const table = cTable.getTable(res)
-        console.log(res)
+    })
+
+  // connection.query(
+  //     `
+  //     SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
+  //     CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
+  //     FROM role, department, employees e
+  //     LEFT JOIN employees m 
+  //     ON (e.manager_id = m.id) 
+  //     WHERE e.role_id = role.id AND role.department_id = department.id AND e.manager_id = ?;
+  //     `,
+  //     [id],
+  //     (err, res) => {
+  //       if (err) {
+  //         throw err;
+  //       }
+  //       const result = res;
+  //       console.log(id)
+  //     //   const table = cTable.getTable(res)
+  //       console.log(res)
                        
-        const table = cTable.getTable(result)
-        console.log(table)
+  //       const table = cTable.getTable(result)
+  //       console.log(table)
         
-        connection.end();
-      }); 
+  //       connection.end();
+  //     }); 
 }
 
 //Adding and removing and employee
@@ -438,11 +507,11 @@ const displayDeletedEmployee = () => {
   });
 }
 
-const askNewRole = (options) => {
+const askRoleName = (options) => {
   return inquirer
   .prompt([{
       type: 'list',
-      message: 'Which role would you like to assign to the employee?',
+      message: 'Which role would you like to select?',
       name: 'roleID',
       choices: options,
       }])
@@ -481,7 +550,7 @@ const displayUpdatedRole = () => {
       console.log(roles)
     askEmployeeName(employees)
       .then(({employeeID} ) => {
-        askNewRole(roles)
+        askRoleName(roles)
         .then( ({roleID}) => {
           updateRoleID(employeeID, roleID )
         });
@@ -621,6 +690,38 @@ const displayAddedRole = () => {
     
       });
 
+  });
+}
+
+const deleteRole = (id) => {
+
+  connection.query(
+    `DELETE FROM role WHERE role.id = ?;`,
+    [id],
+    (err, res) => {
+      if (err) {
+        throw err;
+      }
+
+
+      console.log(`Succesfully deleted role id: ${id}`)
+                      
+      
+      connection.end();
+    }); 
+}
+
+const displayDeletedRole = () => {
+  getRoles()
+  .then(roles => {
+    console.log(roles)
+    askRoleName(roles)
+      .then(({roleID} ) => {
+
+        deleteRole(roleID)
+    
+      });
+    
   });
 }
 // module.exports ={
