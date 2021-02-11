@@ -4,6 +4,8 @@ const cTable = require('console.table')
 
 let departmentNames;
 let managerNames;
+let employeeNames;
+let roleNames;
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -59,9 +61,22 @@ inquirer
       case 3:
         displayEmployeesByManager();
         break;
-    //   case 4:
-    //     askSongTitle().then(queryByTitle);
-    //     break;
+      case 4:
+        getManagers()
+        .then(managers => {
+          console.log(managers)
+          getRoles()
+          .then(roles => {
+            console.log(roles)
+          askEmployeeInfo(roles, managers)
+          .then(({firstName, lastName, role, manager} ) => {
+      
+            addEmployee(firstName, lastName, role, manager)
+          
+        });
+        });
+        });
+        break;
         default:
         throw 'Something went wrong.';
     };
@@ -128,9 +143,7 @@ const getDepartments  = () => {
             console.log(departmentNames)
             resolve(departmentNames)
             });
-            
-            
-          
+      
   });
 }
 
@@ -209,13 +222,14 @@ const getManagers  = () => {
               
             managerNames = res.map(employee => {
               return {name: employee.Manager, value: employee.id }});
+            managerNames.unshift({name: "None", value: null})
             console.log(managerNames)
             resolve(managerNames)
             });      
   });
 }
 
-getManagers()
+
 
 const askManagerName = (options) => {
   return inquirer
@@ -256,3 +270,109 @@ const queryEmployeesByManager = (id) => {
         connection.end();
       }); 
 }
+
+//Adding and removing and employee
+const getEmployees  = () => {
+  return new Promise((resolve, reject) => {
+              
+
+          connection.query(
+            `SELECT distinct employees.id, CONCAT(employees.first_name, ' ' , employees.last_name) AS 'Name' 
+            from employees`,
+            (err, res) => {
+              if (err) {
+                
+                reject(err);
+              
+              }
+              
+            employeeNames = res.map(employee => {
+              return {name: employee.Name, value: employee.id }});
+            console.log(employeeNames)
+            resolve(employeeNames)
+            });      
+  });
+}
+
+const getRoles  = () => {
+  return new Promise((resolve, reject) => {
+              
+
+          connection.query(
+            `SELECT distinct role.id, role.title from role`,
+            (err, res) => {
+              if (err) {
+                
+                reject(err);
+              
+              }
+              
+            roleNames = res.map(role => {
+              return {name: role.title, value: role.id }});
+            console.log(roleNames)
+            resolve(roleNames)
+            });      
+  });
+}
+
+
+const askEmployeeInfo = (roles, managers) => {
+  return inquirer
+       .prompt([{
+           type: 'input',
+           message: 'What is the employees first name?',
+           name: 'firstName',
+           }, 
+          {
+            type: 'input',
+            message: 'What is the employees last name?',
+            name: 'lastName',
+          }, 
+          {
+            type: 'list',
+            message: 'What is the employees role?',
+            name: 'role',
+            choices: roles,
+          },
+          {
+            type: 'list',
+            message: 'Please choose a manager for the employee?',
+            name: 'manager',
+            choices: managers,
+          }
+
+          ])
+}
+
+const addEmployee = (firstName, lastName, role, manager) => {
+
+  connection.query(
+    'INSERT INTO employees SET ?',
+    [
+      {
+        first_name: firstName,
+        last_name: lastName,
+        role_id: role,
+        manager_id: manager
+      },
+    ],
+      (err, res) => {
+        if (err) {
+          throw err;
+        }
+        const result = res;
+        console.log(firstName)
+      //   const table = cTable.getTable(res)
+        console.log(lastName)
+        console.log(role)
+        console.log(manager)
+
+        console.log(`Succesfully added new employee`)
+                       
+        const table = cTable.getTable(result)
+        console.log(table)
+        
+        connection.end();
+      }); 
+}
+
