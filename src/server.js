@@ -70,7 +70,13 @@ inquirer
       case 6:
         displayUpdatedRole();
         break;
-
+      case 7:
+        displayUpdatedManager();
+        break
+      case 8:
+        displayAllRoles();
+        break
+        
         
         default:
         throw 'Something went wrong.';
@@ -230,7 +236,7 @@ const askManagerName = (options) => {
   return inquirer
        .prompt([{
            type: 'list',
-           message: 'Which department would you like?',
+           message: 'Which manager would you like?',
            name: 'managers',
            choices: options,
            }])
@@ -356,18 +362,9 @@ const addEmployee = (firstName, lastName, role, manager) => {
         if (err) {
           throw err;
         }
-        const result = res;
-        console.log(firstName)
-      //   const table = cTable.getTable(res)
-        console.log(lastName)
-        console.log(role)
-        console.log(manager)
 
         console.log(`Succesfully added new employee Name: ${firstName} ${lastName}, Role: ${role}, Manager: ${manager}`)
                        
-        const table = cTable.getTable(result)
-        console.log(table)
-        
         connection.end();
       }); 
 }
@@ -408,13 +405,10 @@ const deleteEmployee = (id) => {
       if (err) {
         throw err;
       }
-      const result = res;
 
 
       console.log(`Succesfully deleted employee id: ${id}`)
                       
-      const table = cTable.getTable(result)
-      console.log(table)
       
       connection.end();
     }); 
@@ -486,3 +480,75 @@ const displayUpdatedRole = () => {
   });
 }
 
+const updateManagerID = (id, managerID) => {
+
+  connection.query(
+    `UPDATE employees 
+      SET 
+        manager_id = ${managerID}
+      WHERE
+        id = ${id};`,
+    (err, res) => {
+      if (err) {
+        throw err;
+      }
+      
+
+
+      console.log(`Succesfully updated employee ${id} manager to ${managerID}`)
+                      
+
+      
+      connection.end();
+    }); 
+}
+
+const askManagerUpdate = (options) => {
+  return inquirer
+  .prompt([{
+      type: 'list',
+      message: 'Which employee would you like to become the manager?',
+      name: 'managerID',
+      choices: options,
+      }])
+
+}
+const displayUpdatedManager = () => {
+  getEmployees()
+  .then(employees => {
+    console.log(employees)
+    getEmployees()
+    .then(managers => {
+      console.log(managers)
+    askEmployeeName(employees)
+      .then(({employeeID} ) => {
+        askManagerUpdate(managers)
+        .then( ({managerID}) => {
+          updateManagerID(employeeID, managerID )
+        });
+      });
+    }); 
+  });
+}
+
+const displayAllRoles = () => {
+
+  
+  connection.query(
+    `SELECT distinct role.id 'ID', role.title 'Title', department.name 'Department' from role, department 
+    WHERE role.department_id = department.id`,
+    (err, res) => {
+      if (err) {
+        throw(err);
+      }
+      const result = res;
+
+    //   const table = cTable.getTable(res)
+      console.log(res)
+                     
+      const table = cTable.getTable(result)
+      console.log(table)
+
+    });  
+
+}
