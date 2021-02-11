@@ -3,6 +3,7 @@ const mysql = require('mysql');
 const cTable = require('console.table')
 
 let departmentNames;
+let managerNames;
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -49,16 +50,15 @@ inquirer
     .then(({ option }) => {
         console.log(option)
     switch (option) {
-        case 1:
+      case 1:
         queryEmployeesByAll();
         break;
-    case 2:
+      case 2:
         displayEmployeesByDepartment();
-        
         break;
-    //   case 3:
-    //     askFromToYear().then(queryBetweenYears);
-    //     break;
+      case 3:
+        displayEmployeesByManager();
+        break;
     //   case 4:
     //     askSongTitle().then(queryByTitle);
     //     break;
@@ -68,6 +68,8 @@ inquirer
     
     });
 
+   
+//Code to fetch employees by All
 const queryEmployeesByAll = () => {
     connection.query(
         `
@@ -93,6 +95,8 @@ const queryEmployeesByAll = () => {
         });
 
 }
+
+//Helper code to get Employees by department
 
 const displayEmployeesByDepartment = () => {
   getDepartments()
@@ -169,9 +173,86 @@ const queryEmployeesByDepartment = (departments) => {
                   console.log(table)
                   
                   connection.end();
-                });
-        
+                }); 
+}
+
+//Helper code to fetch Employees by manager 
+const displayEmployeesByManager = () => {
+  getManagers()
+  .then(managers => {
+    console.log(managers)
+    askManagerName(managers)
+    .then(( { managers } ) => {
+
+      queryEmployeesByManager(managers)
+    
+  });
+  });
+   
+}
+
+const getManagers  = () => {
+  return new Promise((resolve, reject) => {
+              
+
+          connection.query(
+            `SELECT distinct m.id, CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
+            from employees e
+            JOIN employees m 
+            ON (e.manager_id = m.id)`,
+            (err, res) => {
+              if (err) {
+                
+                reject(err);
+              
+              }
+              
+            managerNames = res.map(employee => {
+              return {name: employee.Manager, value: employee.id }});
+            console.log(managerNames)
+            resolve(managerNames)
+            });      
+  });
+}
+
+getManagers()
+
+const askManagerName = (options) => {
+  return inquirer
+       .prompt([{
+           type: 'list',
+           message: 'Which department would you like?',
+           name: 'managers',
+           choices: options,
+           }])
        
 }
 
-    
+
+//Have to fetch employee list by manager ID's
+const queryEmployeesByManager = (id) => {
+
+  connection.query(
+      `
+      SELECT e.id 'ID', CONCAT(e.first_name, ' ' , e.last_name) AS 'Name', role.title 'Title', department.name 'Department', role.salary 'Salary',
+      CONCAT(m.first_name, ' ' , m.last_name) AS 'Manager' 
+      FROM role, department, employees e
+      LEFT JOIN employees m 
+      ON (e.manager_id = m.id) 
+      WHERE e.role_id = role.id AND role.department_id = department.id AND e.manager_id = ${id};
+      `,
+      (err, res) => {
+        if (err) {
+          throw err;
+        }
+        const result = res;
+        console.log(id)
+      //   const table = cTable.getTable(res)
+        console.log(res)
+                       
+        const table = cTable.getTable(result)
+        console.log(table)
+        
+        connection.end();
+      }); 
+}
