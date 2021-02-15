@@ -16,11 +16,11 @@ The Employee Tracker is a command line node.js application that allows users to 
 
 
 ## Installation Instructions
-First ensure you have run 'npm init', then ensure that you run 'npm install inquirer', 'npm install mysql' and 'npm install console.table'. Then to run the application run 'node .\index.js'
+First ensure you have run 'npm init', then ensure that you run 'npm install inquirer', 'npm install mysql' and 'npm install console.table'. 
 
 
 ## Usage Information 
-Follow the above installation instructions then follow the command prompts to grow and shrink your company. 
+Before running the application ensure you have followed the above installation instructions. Also to connect with mysql you have to put your password into the queries.js file to ensure it links with your personal mysql. Once this is done you can run the application with the command prompt 'node .\index.js' then follow the command prompts to grow and shrink your company.
 
 
 ## License
@@ -43,4 +43,4 @@ Email:
 willygodwin47@gmail.com
 
 ## Link to deployed URL 
-
+https://drive.google.com/file/d/1-0BnHpLHx7_DVwchGkmx9V_eFFfqbzlK/view?usp=sharing
