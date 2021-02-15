@@ -82,6 +82,9 @@ inquirer
       case 10:
         displayDeletedRole();
         break
+      case 11: 
+        displayAllDepartments();
+        break;
         
         
         
@@ -610,11 +613,12 @@ const deleteRole = (id) => {
     [id],
     (err, res) => {
       if (err) {
-        throw err;
+        console.log('Please delete all employees associated with the role prior to deleting')
+        // throw err;
       }
-
-
-      console.log(`Succesfully deleted role id: ${id}`)
+      else {
+        console.log(`Succesfully deleted role id: ${id}`)
+      }
                       
       
       connection.end();
@@ -633,6 +637,28 @@ const displayDeletedRole = () => {
       });
     
   });
+}
+
+const displayAllDepartments = () => {
+
+  
+  connection.query(
+    `SELECT distinct department.id 'ID', department.name 'Name' from department `
+    ,
+    (err, res) => {
+      if (err) {
+        throw(err);
+      }
+      const result = res;
+
+    //   const table = cTable.getTable(res)
+      console.log(res)
+                     
+      const table = cTable.getTable(result)
+      console.log(table)
+
+    });  
+
 }
 // module.exports ={
 //   displayAllRoles: displayAllRoles
