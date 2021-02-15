@@ -85,6 +85,15 @@ inquirer
       case 11: 
         displayAllDepartments();
         break;
+      case 12:
+        break;
+      case 13: 
+        displayAddedDepartment();
+        break;
+      case 14:
+
+        break; 
+
         
         
         
@@ -139,7 +148,7 @@ const displayEmployeesByAll = () => {
 
 }
 
-//Helper code to get Employees by department
+//Helper code to display all Employees by department
 
 const displayEmployeesByDepartment = () => {
   getDepartments()
@@ -199,7 +208,7 @@ const queryEmployeesByDepartment = (departments) => {
     })
 }
 
-//Helper code to display Employees by manager 
+//Helper code to display all Employees by manager 
 const displayEmployeesByManager = () => {
   getManagers()
   .then(managers => {
@@ -264,7 +273,7 @@ const queryEmployeesByManager = (id) => {
     })
 }
 
-//Adding and removing and employee
+//Fetching the list of all employees 
 const getEmployees  = () => {
   return new Promise((resolve, reject) => {
               
@@ -288,6 +297,7 @@ const getEmployees  = () => {
   });
 }
 
+//Fetching the list of all roles
 const getRoles  = () => {
   return new Promise((resolve, reject) => {
               
@@ -309,7 +319,7 @@ const getRoles  = () => {
   });
 }
 
-
+//Code to add a new employee
 const askEmployeeInfo = (roles, managers) => {
   return inquirer
        .prompt([{
@@ -378,6 +388,7 @@ const displayAddedEmployee = () => {
   });
 }
 
+//Code to delete an employee
 const askEmployeeName = (options) => {
   return inquirer
   .prompt([{
@@ -420,6 +431,7 @@ const displayDeletedEmployee = () => {
   });
 }
 
+//Code to update an employees role in the company
 const askRoleName = (options) => {
   return inquirer
   .prompt([{
@@ -472,6 +484,7 @@ const displayUpdatedRole = () => {
   });
 }
 
+//Code to update the employees manager to a new manager
 const updateManagerID = (id, managerID) => {
 
   connection.query(
@@ -524,6 +537,7 @@ const displayUpdatedManager = () => {
   });
 }
 
+//Code to view all the roles
 const displayAllRoles = () => {
 
   
@@ -546,7 +560,7 @@ const displayAllRoles = () => {
 
 }
 
-
+//Code to add new roles 
 const addRole = (title, salary, department) => {
 
   connection.query(
@@ -592,6 +606,7 @@ const askRoleInfo = (department) => {
 }
 
 
+
 const displayAddedRole = () => {
   getDepartments()
   .then(departments => {
@@ -606,6 +621,7 @@ const displayAddedRole = () => {
   });
 }
 
+//Code to delete a role 
 const deleteRole = (id) => {
 
   connection.query(
@@ -639,6 +655,7 @@ const displayDeletedRole = () => {
   });
 }
 
+//Code to display all the departments
 const displayAllDepartments = () => {
 
   
@@ -660,6 +677,51 @@ const displayAllDepartments = () => {
     });  
 
 }
+
+//Code below to add a new department
+const askDepartmentInput = () => {
+  return inquirer
+       .prompt([{
+           type: 'input',
+           message: 'What is the name of the new department?',
+           name: 'departmentName',
+           }, 
+
+          ])
+}
+
+const addDepartment = (departmentName) => {
+
+  connection.query(
+    'INSERT INTO department SET ?',
+    [
+      {
+        name: departmentName,
+
+      },
+    ],
+      (err, res) => {
+        if (err) {
+          throw err;
+        }
+
+        console.log(`Succesfully added new employee Name: ${departmentName}`)
+                       
+        connection.end();
+      }); 
+}
+ 
+const displayAddedDepartment = () => {
+
+  askDepartmentInput()
+      .then(({departmentName} ) => {
+
+        addDepartment(departmentName)
+    
+      });
+
+}
+
 // module.exports ={
 //   displayAllRoles: displayAllRoles
 // }
