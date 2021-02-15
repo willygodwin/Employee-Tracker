@@ -86,12 +86,13 @@ inquirer
         displayAllDepartments();
         break;
       case 12:
+        displayDepartmentBudget();
         break;
       case 13: 
         displayAddedDepartment();
         break;
       case 14:
-
+        displayDeletedDepartment();
         break; 
 
         
@@ -133,7 +134,7 @@ function queryEmployees(filter = {}) {
   })
 }    
    
-//Code to display employees by All
+//CASE 1: Code to display employees by All
 const displayEmployeesByAll = () => {
   queryEmployees()
   .then((results) =>{ 
@@ -148,7 +149,7 @@ const displayEmployeesByAll = () => {
 
 }
 
-//Helper code to display all Employees by department
+//CASE 2 : Helper code to display all Employees by department
 
 const displayEmployeesByDepartment = () => {
   getDepartments()
@@ -208,7 +209,7 @@ const queryEmployeesByDepartment = (departments) => {
     })
 }
 
-//Helper code to display all Employees by manager 
+//CASE 3: Helper code to display all Employees by manager 
 const displayEmployeesByManager = () => {
   getManagers()
   .then(managers => {
@@ -319,7 +320,7 @@ const getRoles  = () => {
   });
 }
 
-//Code to add a new employee
+//CASE 4: Code to add a new employee
 const askEmployeeInfo = (roles, managers) => {
   return inquirer
        .prompt([{
@@ -388,7 +389,7 @@ const displayAddedEmployee = () => {
   });
 }
 
-//Code to delete an employee
+// CASE 5: Code to delete an employee
 const askEmployeeName = (options) => {
   return inquirer
   .prompt([{
@@ -431,7 +432,7 @@ const displayDeletedEmployee = () => {
   });
 }
 
-//Code to update an employees role in the company
+//CASE 6: Code to update an employees role in the company
 const askRoleName = (options) => {
   return inquirer
   .prompt([{
@@ -484,7 +485,7 @@ const displayUpdatedRole = () => {
   });
 }
 
-//Code to update the employees manager to a new manager
+//CASE 7: Code to update the employees manager to a new manager
 const updateManagerID = (id, managerID) => {
 
   connection.query(
@@ -537,7 +538,7 @@ const displayUpdatedManager = () => {
   });
 }
 
-//Code to view all the roles
+//CASE 8: Code to view all the roles
 const displayAllRoles = () => {
 
   
@@ -560,7 +561,7 @@ const displayAllRoles = () => {
 
 }
 
-//Code to add new roles 
+//CASE 9: Code to add new roles 
 const addRole = (title, salary, department) => {
 
   connection.query(
@@ -621,7 +622,7 @@ const displayAddedRole = () => {
   });
 }
 
-//Code to delete a role 
+//CASE10: Code to delete a role 
 const deleteRole = (id) => {
 
   connection.query(
@@ -655,7 +656,7 @@ const displayDeletedRole = () => {
   });
 }
 
-//Code to display all the departments
+//CASE11: Code to display all the departments
 const displayAllDepartments = () => {
 
   
@@ -678,7 +679,51 @@ const displayAllDepartments = () => {
 
 }
 
-//Code below to add a new department
+//CASE 12: Code to view departments budgets
+const displayDepartmentsBudget = (department) => {
+
+  
+  connection.query(
+    `SELECT department.id, department.name, SUM(CASE WHEN employees.id IS NOT NULL THEN role.salary ELSE 0 END) as 'Budget'
+    FROM  department
+    left JOIN role
+    on (role.department_id = department.id)
+    left join employees
+    on (role.id = employees.role_id)
+    where department.id = ?
+    group by department.id;`,
+    [department],
+    (err, res) => {
+      if (err) {
+        throw(err);
+      }
+      const result = res;
+
+    //   const table = cTable.getTable(res)
+      console.log(res)
+                     
+      const table = cTable.getTable(result)
+      console.log(table)
+
+    });  
+
+}
+
+const displayDepartmentBudget = () => {
+  getDepartments()
+  .then(departments => {
+    console.log(departments)
+    askDepartmentName(departments)
+    .then(( { departmentID } ) => {
+      displayDepartmentsBudget(departmentID)
+    
+  });
+  });
+
+}
+
+
+// CASE 13: Code below to add a new department
 const askDepartmentInput = () => {
   return inquirer
        .prompt([{
@@ -721,6 +766,43 @@ const displayAddedDepartment = () => {
       });
 
 }
+
+//CASE 14:Code to delete a department 
+const deleteDepartment = (id) => {
+
+  connection.query(
+    `DELETE FROM department WHERE department.id = ?;`,
+    [id],
+    (err, res) => {
+      if (err) {
+
+        console.log('Please delete all roles associated with the department prior to deleting')
+        // throw err;
+      }
+      else {
+        console.log(`Succesfully deleted department id: ${id}`)
+      }
+                      
+      
+      connection.end();
+    }); 
+}
+
+const displayDeletedDepartment = () => {
+  getDepartments()
+  .then(departments => {
+    console.log(departments)
+    askDepartmentName(departments)
+      .then(({departmentID} ) => {
+
+        deleteDepartment(departmentID)
+    
+      });
+    
+  });
+}
+
+
 
 // module.exports ={
 //   displayAllRoles: displayAllRoles
